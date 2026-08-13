@@ -1,5 +1,4 @@
 import { UserIcon } from "@sanity/icons/User";
-import { title } from "process";
 import { defineField, defineType } from "sanity";
 
 export const customerTypes = defineType({
@@ -48,7 +47,7 @@ export const customerTypes = defineType({
       initialValue: () => new Date().toISOString(),
     }),
   ],
-   preview: {
+  preview: {
     select: {
       email: "email",
       name: "name",

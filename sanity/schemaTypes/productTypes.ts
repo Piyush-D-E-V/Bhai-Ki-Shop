@@ -58,29 +58,30 @@ export const productTypes = defineType({
       group: "details",
       validation: (rule) => [rule.required().error("Category is required")],
     }),
-
     defineField({
       name: "specifications",
       title: "Technical Specifications",
       type: "array",
       group: "details",
       description:
-        "Add dynamic tech specs (e.g., 'Switch': 'Cherry MX', 'Refresh Rate': '165Hz')",
+        "Add specific features for AI comparison (e.g., DPI, Refresh Rate, Switches)",
       of: [
         {
           type: "object",
           fields: [
             {
               name: "key",
-              type: "string",
               title: "Feature Name",
-              validation: (rule) => [rule.required()],
+              type: "string",
+              description: 'e.g., "Polling Rate", "Panel Type", "Switch Type"',
+              validation: (rule) => rule.required(),
             },
             {
               name: "value",
-              type: "string",
               title: "Value",
-              validation: (rule) => [rule.required()],
+              type: "string",
+              description: 'e.g., "8000Hz", "IPS", "Cherry MX Red"',
+              validation: (rule) => rule.required(),
             },
           ],
           preview: {
@@ -92,7 +93,6 @@ export const productTypes = defineType({
         },
       ],
     }),
-
     defineField({
       name: "materials",
       type: "string",
