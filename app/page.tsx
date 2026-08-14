@@ -1,69 +1,130 @@
-import Image from "next/image";
+import { Suspense } from "react";
+import { sanityFetch } from "@/sanity/lib/live";
+import {
+  FEATURED_PRODUCTS_QUERY,
+  FILTER_PRODUCTS_BY_NAME_QUERY,
+  FILTER_PRODUCTS_BY_PRICE_ASC_QUERY,
+  FILTER_PRODUCTS_BY_PRICE_DESC_QUERY,
+  FILTER_PRODUCTS_BY_RELEVANCE_QUERY,
+} from "@/sanity/queries/products";
+// WARNING: Ye file abhi banani baaki hai
+import { ALL_CATEGORIES_QUERY } from "@/sanity/queries/categories"; 
 
-export default function Home() {
+// WARNING: Ye components abhi banane baaki hain
+import { ProductSection } from "@/components/LandingPage/ProductSection";
+import { CategoryTiles } from "@/components/LandingPage/CategoryTiles";
+import { FeaturedCarousel } from "@/components/LandingPage/FeaturedCarousel";
+import { FeaturedCarouselSkeleton } from "@/components/LandingPage/FeaturedCarouselSkeleton";
+import { Any } from "next-sanity";
+
+export const dynamic = "force-dynamic";
+
+interface PageProps {
+  searchParams: Promise<{
+    q?: string;
+    category?: string;
+    color?: string;
+    material?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    sort?: string;
+    inStock?: string;
+  }>;
+}
+
+export default async function HomePage({ searchParams }: PageProps) {
+  const params = await searchParams;
+
+  const searchQuery = params.q ?? "";
+  const categorySlug = params.category ?? "";
+  const color = params.color ?? "";
+  const material = params.material ?? "";
+  const minPrice = Number(params.minPrice) || 0;
+  const maxPrice = Number(params.maxPrice) || 0;
+  const sort = params.sort ?? "name";
+  const inStock = params.inStock === "true";
+
+  const getQuery = () => {
+    if (searchQuery && sort === "relevance") {
+      return FILTER_PRODUCTS_BY_RELEVANCE_QUERY;
+    }
+    switch (sort) {
+      case "price_asc":
+        return FILTER_PRODUCTS_BY_PRICE_ASC_QUERY;
+      case "price_desc":
+        return FILTER_PRODUCTS_BY_PRICE_DESC_QUERY;
+      case "relevance":
+        return FILTER_PRODUCTS_BY_RELEVANCE_QUERY;
+      default:
+        return FILTER_PRODUCTS_BY_NAME_QUERY;
+    }
+  };
+
+  const { data: products } = (await sanityFetch({
+    query: getQuery(),
+    params: {
+      searchQuery,
+      categorySlug,
+      color,
+      material,
+      minPrice,
+      maxPrice,
+      inStock,
+    },
+  })) as { data: Any };
+
+  const { data: categories } = (await sanityFetch({
+    query: ALL_CATEGORIES_QUERY,
+  })) as { data: Any };
+
+  const { data: featuredProducts } = (await sanityFetch({
+    query: FEATURED_PRODUCTS_QUERY,
+  })) as { data: Any[] };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      
+      {/* Featured Products Carousel - Hero Section */}
+      {featuredProducts?.length > 0 && (
+        <div className="bg-zinc-950 pt-4 pb-8">
+          <Suspense fallback={<FeaturedCarouselSkeleton />}>
+            <FeaturedCarousel products={featuredProducts} />
+          </Suspense>
+        </div>
+      )}
+
+      {/* Page Banner (TactileRig Themed) */}
+      <div className="border-b border-zinc-200 bg-white dark:border-zinc-900/50 dark:bg-zinc-950 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+            {categorySlug ? (
+               <span className="capitalize">{categorySlug.replace("-", " ")} Gear</span>
+            ) : (
+               <span>Explore All <span className="text-cyan-500">Hardware</span></span>
+            )}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            Build your dream setup with premium mechanical keyboards, components, and accessories.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Category Tiles */}
+        <div className="mt-6 pb-2">
+          <CategoryTiles
+            categories={categories}
+            activeCategory={categorySlug || undefined}
+          />
         </div>
-      </main>
+      </div>
+
+      {/* Main Product Grid */}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <ProductSection
+          categories={categories}
+          products={products}
+          searchQuery={searchQuery}
+        />
+      </div>
     </div>
   );
 }
