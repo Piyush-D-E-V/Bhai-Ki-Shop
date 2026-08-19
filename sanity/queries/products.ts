@@ -1,6 +1,7 @@
 import { defineQuery } from "next-sanity";
 import { LOW_STOCK_THRESHOLD } from "@/lib/constants/stock";
 
+
 const PRODUCT_FILTER_CONDITION = `
   _type == "product"
   && ($categorySlug == "" || category->slug.current == $categorySlug)
@@ -25,9 +26,9 @@ const FILTERED_PRODUCTS_PROJECTION = `{
   material,
   color,
   stock,
-  specifications
+  specifications,
+  assemblyRequired
 }`;
-
 const RELEVANCE_SCORE = `score(
   boost(name match $searchQuery + "*", 3),
   boost(description match $searchQuery + "*", 1)
@@ -184,3 +185,36 @@ export const PRODUCT_BY_IDS_QUERY = defineQuery(`*[
   },
   category->{ _id, title, "slug": slug.current }
 }`);
+
+export const RELATED_PRODUCTS_QUERY = defineQuery(`
+  *[
+    _type == "product"
+    && _id != $productId
+    && stock > 0
+    && (
+      category._ref == $categoryId
+      || $categoryId == null
+    )
+  ]
+  | order(featured desc, _createdAt desc)
+  [0...8]
+  {
+    _id,
+    name,
+    "slug": slug.current,
+    price,
+    stock,
+    featured,
+    category->{
+      _id,
+      title
+    },
+    images[]{
+      _key,
+      asset->{
+        _id,
+        url
+      }
+    }
+  }
+`);

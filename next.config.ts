@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    dangerouslyAllowLocalIP: true, 
+    // Ye 'remotePatterns' ka wildcard (**) internet ki kisi bhi HTTPS image ko allow kar dega
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      }
+    ],
+  },
 };
 
 export default nextConfig;

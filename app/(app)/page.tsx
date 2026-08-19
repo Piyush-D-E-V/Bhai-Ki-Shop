@@ -1,22 +1,15 @@
-import { Suspense } from "react";
 import { sanityFetch } from "@/sanity/lib/live";
 import {
-  FEATURED_PRODUCTS_QUERY,
   FILTER_PRODUCTS_BY_NAME_QUERY,
   FILTER_PRODUCTS_BY_PRICE_ASC_QUERY,
   FILTER_PRODUCTS_BY_PRICE_DESC_QUERY,
   FILTER_PRODUCTS_BY_RELEVANCE_QUERY,
 } from "@/sanity/queries/products";
-// WARNING: Ye file abhi banani baaki hai
-import { ALL_CATEGORIES_QUERY } from "@/sanity/queries/categories"; 
-
-// WARNING: Ye components abhi banane baaki hain
-import { ProductSection } from "@/components/LandingPage/ProductSection";
-import { CategoryTiles } from "@/components/LandingPage/CategoryTiles";
-import { FeaturedCarousel } from "@/components/LandingPage/FeaturedCarousel";
-import { FeaturedCarouselSkeleton } from "@/components/LandingPage/FeaturedCarouselSkeleton";
-import { Any } from "next-sanity";
-
+import { ALL_CATEGORIES_QUERY } from "@/sanity/queries/categories";
+import { ProductSection } from "@/components/app/ProductSection";
+import { CategoryTiles } from "@/components/app/CategoryTiles";
+import { Hero } from "@/components/app/Hero";
+import { MarqueeBanner } from "@/components/app/MarqueeBanner";
 export const dynamic = "force-dynamic";
 
 interface PageProps {
@@ -44,10 +37,13 @@ export default async function HomePage({ searchParams }: PageProps) {
   const sort = params.sort ?? "name";
   const inStock = params.inStock === "true";
 
+  // Select query based on sort parameter
   const getQuery = () => {
+    // If searching and sort is relevance, use relevance query
     if (searchQuery && sort === "relevance") {
       return FILTER_PRODUCTS_BY_RELEVANCE_QUERY;
     }
+
     switch (sort) {
       case "price_asc":
         return FILTER_PRODUCTS_BY_PRICE_ASC_QUERY;
@@ -60,7 +56,8 @@ export default async function HomePage({ searchParams }: PageProps) {
     }
   };
 
-  const { data: products } = (await sanityFetch({
+  // Fetch products with filters (server-side via GROQ)
+  const { data: products } = await sanityFetch({
     query: getQuery(),
     params: {
       searchQuery,
@@ -71,44 +68,31 @@ export default async function HomePage({ searchParams }: PageProps) {
       maxPrice,
       inStock,
     },
-  })) as { data: Any };
+  });
 
-  const { data: categories } = (await sanityFetch({
+  // Fetch categories for filter sidebar
+  const { data: categories } = await sanityFetch({
     query: ALL_CATEGORIES_QUERY,
-  })) as { data: Any };
-
-  const { data: featuredProducts } = (await sanityFetch({
-    query: FEATURED_PRODUCTS_QUERY,
-  })) as { data: Any[] };
+  });
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-background w-full">
+      {/* Page Banner */}
+      <Hero />
+      <MarqueeBanner />
       
-      {/* Featured Products Carousel - Hero Section */}
-      {featuredProducts?.length > 0 && (
-        <div className="bg-zinc-950 pt-4 pb-8">
-          <Suspense fallback={<FeaturedCarouselSkeleton />}>
-            <FeaturedCarousel products={featuredProducts} />
-          </Suspense>
-        </div>
-      )}
-
-      {/* Page Banner (TactileRig Themed) */}
-      <div className="border-b border-zinc-200 bg-white dark:border-zinc-900/50 dark:bg-zinc-950 backdrop-blur-md">
+      {/* Brutalist Section Header */}
+      <div className="border-b-2 border-border bg-card">
         <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-            {categorySlug ? (
-               <span className="capitalize">{categorySlug.replace("-", " ")} Gear</span>
-            ) : (
-               <span>Explore All <span className="text-cyan-500">Hardware</span></span>
-            )}
+          <h1 className="text-3xl font-black uppercase tracking-tight text-foreground">
+            Shop {categorySlug ? categorySlug : "All Gear"}
           </h1>
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-            Build your dream setup with premium mechanical keyboards, components, and accessories.
+          <p className="mt-2 text-sm font-bold uppercase text-muted-foreground">
+            Premium streetwear and sneakers
           </p>
         </div>
 
-        {/* Category Tiles */}
+        {/* Category Tiles - Full width */}
         <div className="mt-6 pb-2">
           <CategoryTiles
             categories={categories}
@@ -117,8 +101,7 @@ export default async function HomePage({ searchParams }: PageProps) {
         </div>
       </div>
 
-      {/* Main Product Grid */}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <ProductSection
           categories={categories}
           products={products}
