@@ -54,7 +54,7 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
               Order #{order.orderNumber}
             </h1>
             <p className="mt-2 text-lg font-bold uppercase text-muted-foreground">
-              Placed on {formatDate(order.createdAt, "datetime")}
+              Placed on {formatDate(order.createdAt)}
             </p>
           </div>
           

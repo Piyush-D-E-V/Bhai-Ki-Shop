@@ -8,6 +8,7 @@ import { ORDERS_BY_USER_QUERY } from "@/sanity/queries/orders";
 import { getOrderStatus } from "@/lib/constants/orderStatus";
 import { formatPrice, formatDate, formatOrderNumber } from "@/lib/utils";
 import { StackedProductImages } from "@/components/app/StackedProductImages";
+import { Any } from "next-sanity";
 export const dynamic = "force-dynamic";
 
 
@@ -56,9 +57,12 @@ export default async function OrdersPage() {
         {orders.map((order) => {
           const status = getOrderStatus(order.status);
           const StatusIcon = status.icon;
-          const images = (order.itemImages ?? []).filter(
-            (url): url is string => url !== null,
-          );
+          
+          // Cast order.itemImages array to any[] to bypass StegaString mismatch 
+          // and force it into the string[] that StackedProductImages expects.
+          const images: string[] = ((order.itemImages as Any[]) ?? []).filter(
+            (url) => url !== null,
+          ) as string[];
 
           return (
             <Link
