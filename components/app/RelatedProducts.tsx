@@ -1,6 +1,7 @@
 import { sanityFetch } from "@/sanity/lib/live";
 import { ProductCard } from "@/components/app/ProductCard";
 import { RELATED_PRODUCTS_QUERY } from "@/sanity/queries/products";
+import { Any } from "next-sanity";
 
 interface RelatedProductsProps {
   productId: string;
@@ -11,7 +12,7 @@ export async function RelatedProducts({
   productId,
   categoryId,
 }: RelatedProductsProps) {
-  const { data: products } = await sanityFetch({
+  const { data } = await sanityFetch({
     query: RELATED_PRODUCTS_QUERY,
     params: {
       productId,
@@ -19,7 +20,9 @@ export async function RelatedProducts({
     },
   });
 
-  if (!products || products.length === 0) {
+  const products = (data || []) as Any[];
+
+  if (products.length === 0) {
     return null;
   }
 
@@ -43,7 +46,7 @@ export async function RelatedProducts({
       </div>
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {products.slice(0, 8).map((product) => (
+        {products.slice(0, 8).map((product: Any) => (
           <ProductCard
             key={product._id}
             product={product}

@@ -13,18 +13,15 @@ export function OrderCardWidget({ order, onClose }: OrderCardWidgetProps) {
   const config = getOrderStatus(order.status);
 
   const handleClick = () => {
-    // Only close chat on mobile (< 768px)
     if (window.matchMedia("(max-width: 767px)").matches) {
       onClose();
     }
   };
 
-  // Format date
   const formattedDate = order.createdAt
-    ? formatDate(order.createdAt, "long")
+    ? formatDate(order.createdAt)
     : null;
 
-  // Truncate item names for display
   const displayItems =
     order.itemNames.length > 2
       ? `${order.itemNames.slice(0, 2).join(", ")} +${order.itemNames.length - 2} more`

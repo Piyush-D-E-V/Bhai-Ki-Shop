@@ -4,17 +4,12 @@ import { z } from "zod";
 import { sanityFetch } from "@/sanity/lib/live";
 import { AI_SEARCH_PRODUCTS_QUERY } from "@/sanity/queries/products";
 import { formatPrice } from "@/lib/utils";
-import {
-  getStockMessage,
-  getStockStatus,
-} from "@/lib/constants/stock";
-import {
-  COLOR_VALUES,
-  MATERIAL_VALUES,
-} from "@/lib/constants/filters";
+import { getStockMessage, getStockStatus } from "@/lib/constants/stock";
+import { COLOR_VALUES, MATERIAL_VALUES } from "@/lib/constants/filters";
 
 import type { AI_SEARCH_PRODUCTS_QUERYResult } from "@/sanity.types";
 import type { SearchProduct } from "@/lib/ai/types";
+import { Any } from "next-sanity";
 
 const productSearchSchema = z.object({
   query: z
@@ -38,10 +33,7 @@ const productSearchSchema = z.object({
     .optional()
     .describe("Filter by material type"),
 
-  color: z
-    .enum(COLOR_VALUES)
-    .optional()
-    .describe("Filter by color"),
+  color: z.enum(COLOR_VALUES).optional().describe("Filter by color"),
 
   minPrice: z
     .number()
@@ -53,9 +45,7 @@ const productSearchSchema = z.object({
     .number()
     .optional()
     .default(0)
-    .describe(
-      "Maximum price in GBP (e.g., 500). Use 0 for no maximum.",
-    ),
+    .describe("Maximum price in GBP (e.g., 500). Use 0 for no maximum."),
 });
 
 export const searchProductsTool = tool({
@@ -64,14 +54,7 @@ export const searchProductsTool = tool({
 
   inputSchema: productSearchSchema,
 
-  execute: async ({
-    query,
-    category,
-    material,
-    color,
-    minPrice,
-    maxPrice,
-  }) => {
+  execute: async ({ query, category, material, color, minPrice, maxPrice }) => {
     console.log("[SearchProducts] Query received:", {
       query,
       category,
@@ -89,8 +72,6 @@ export const searchProductsTool = tool({
           searchQuery: query || "",
           categorySlug: category || "",
 
-          // Gemini sends undefined when the filter isn't specified.
-          // Sanity expects "" to mean "no filter".
           material: material || "",
           color: color || "",
 
@@ -99,23 +80,16 @@ export const searchProductsTool = tool({
         },
       });
 
-      const products =
-        data as AI_SEARCH_PRODUCTS_QUERYResult;
+      const products = data as AI_SEARCH_PRODUCTS_QUERYResult;
 
-      console.log(
-        "[SearchProducts] Products found:",
-        products.length,
-      );
+      console.log("[SearchProducts] Products found:", products.length);
 
       if (products.length === 0) {
         return {
           found: false,
-
           message:
             "No products found matching your criteria. Try different search terms or filters.",
-
           products: [],
-
           filters: {
             query,
             category,
@@ -127,63 +101,36 @@ export const searchProductsTool = tool({
         };
       }
 
-      const formattedProducts: SearchProduct[] =
-        products.map((product) => ({
-          id: product._id,
-
-          name: product.name ?? null,
-
-          slug: product.slug ?? null,
-
-          description: product.description ?? null,
-
-          price: product.price ?? null,
-
-          priceFormatted:
-            product.price != null
-              ? formatPrice(product.price)
-              : null,
-
-          category: product.category?.title ?? null,
-
-          categorySlug: product.category?.slug ?? null,
-
-          material: product.material ?? null,
-
-          color: product.color ?? null,
-
-          dimensions: product.dimensions ?? null,
-
-          stockCount: product.stock ?? 0,
-
-          stockStatus: getStockStatus(product.stock),
-
-          stockMessage: getStockMessage(product.stock),
-
-          featured: product.featured ?? false,
-
-          assemblyRequired:
-            product.assemblyRequired ?? false,
-
-          imageUrl:
-            product.images?.asset?.url ?? null,
-
-          productUrl: product.slug
-            ? `/products/${product.slug}`
-            : null,
-        }));
+      // Overrode product typing here to bypass missing TS definitions
+      const formattedProducts: SearchProduct[] = products.map((product: Any) => ({
+        id: product._id,
+        name: product.name ?? null,
+        slug: product.slug ?? null,
+        description: product.description ?? null,
+        price: product.price ?? null,
+        priceFormatted:
+          product.price != null ? formatPrice(product.price) : null,
+        category: product.category?.title ?? null,
+        categorySlug: product.category?.slug ?? null,
+        material: product.material ?? null,
+        color: product.color as "black" | "white" | "silver" | "rgb" | null,
+        dimensions: product.dimensions ?? null,
+        stockCount: product.stock ?? 0,
+        stockStatus: getStockStatus(product.stock),
+        stockMessage: getStockMessage(product.stock),
+        featured: product.featured ?? false,
+        assemblyRequired: product.assemblyRequired ?? false,
+        imageUrl: product.images?.asset?.url ?? null,
+        productUrl: product.slug ? `/products/${product.slug}` : null,
+      }));
 
       return {
         found: true,
-
         message: `Found ${products.length} product${
           products.length === 1 ? "" : "s"
         } matching your search.`,
-
         totalResults: products.length,
-
         products: formattedProducts,
-
         filters: {
           query,
           category,
@@ -194,24 +141,13 @@ export const searchProductsTool = tool({
         },
       };
     } catch (error) {
-      console.error(
-        "[SearchProducts] Error:",
-        error,
-      );
+      console.error("[SearchProducts] Error:", error);
 
       return {
         found: false,
-
-        message:
-          "An error occurred while searching for products.",
-
+        message: "An error occurred while searching for products.",
         products: [],
-
-        error:
-          error instanceof Error
-            ? error.message
-            : "Unknown error",
-
+        error: error instanceof Error ? error.message : "Unknown error",
         filters: {
           query,
           category,

@@ -4,6 +4,7 @@ import { PRODUCT_BY_SLUG_QUERY } from "@/sanity/queries/products";
 import { ProductGallery } from "@/components/app/ProductGallery";
 import { ProductInfo } from "@/components/app/ProductInfo";
 import { RelatedProducts } from "@/components/app/RelatedProducts";
+import { Any } from "next-sanity";
 
 interface ProductPageProps {
   params: Promise<{
@@ -31,18 +32,18 @@ export default async function ProductPage({
         <div className="grid items-start gap-12 lg:grid-cols-2">
           {/* Image Gallery */}
           <ProductGallery
-            images={product.images}
-            productName={product.name}
+            images={product.images as Any}
+            productName={product.name as Any}
           />
 
           {/* Product Info */}
-          <ProductInfo product={product} />
+          <ProductInfo product={product as Any} />
         </div>
 
         {/* Related Products */}
         <RelatedProducts
           productId={product._id}
-          categoryId={product.category?._ref ?? null}
+          categoryId={(product.category as Any)?._id ?? null}
         />
       </div>
     </div>

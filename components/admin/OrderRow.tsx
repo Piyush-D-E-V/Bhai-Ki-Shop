@@ -38,19 +38,16 @@ function OrderRowContent(handle: DocumentHandle) {
 
   return (
     <TableRow className="group transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-      {/* Order Info - Mobile: includes email, items, total */}
       <TableCell className="py-3 sm:py-4">
         <Link href={`/admin/orders/${handle.documentId}`} className="block">
           <div className="flex items-center justify-between gap-2 sm:block">
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
               #{formatOrderNumber(data.orderNumber)}
             </span>
-            {/* Mobile: Total inline */}
             <span className="font-medium text-zinc-900 dark:text-zinc-100 sm:hidden">
               {formatPrice(data.total)}
             </span>
           </div>
-          {/* Mobile: Email and items */}
           <div className="mt-1 sm:hidden">
             <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
               {data.email}
@@ -60,7 +57,7 @@ function OrderRowContent(handle: DocumentHandle) {
               {data.createdAt && (
                 <>
                   {" · "}
-                  {formatDate(data.createdAt, "short")}
+                  {formatDate(data.createdAt)}
                 </>
               )}
             </p>
@@ -68,7 +65,6 @@ function OrderRowContent(handle: DocumentHandle) {
         </Link>
       </TableCell>
 
-      {/* Email - Desktop only */}
       <TableCell className="hidden py-4 text-zinc-500 dark:text-zinc-400 sm:table-cell">
         <Link
           href={`/admin/orders/${handle.documentId}`}
@@ -78,21 +74,18 @@ function OrderRowContent(handle: DocumentHandle) {
         </Link>
       </TableCell>
 
-      {/* Items - Desktop only */}
       <TableCell className="hidden py-4 text-center md:table-cell">
         <Link href={`/admin/orders/${handle.documentId}`} className="block">
           {data.itemCount}
         </Link>
       </TableCell>
 
-      {/* Total - Desktop only */}
       <TableCell className="hidden py-4 font-medium text-zinc-900 dark:text-zinc-100 sm:table-cell">
         <Link href={`/admin/orders/${handle.documentId}`} className="block">
           {formatPrice(data.total)}
         </Link>
       </TableCell>
 
-      {/* Status - Always visible */}
       <TableCell className="py-3 sm:py-4">
         <Link
           href={`/admin/orders/${handle.documentId}`}
@@ -107,10 +100,9 @@ function OrderRowContent(handle: DocumentHandle) {
         </Link>
       </TableCell>
 
-      {/* Date - Desktop only */}
       <TableCell className="hidden py-4 text-zinc-500 dark:text-zinc-400 md:table-cell">
         <Link href={`/admin/orders/${handle.documentId}`} className="block">
-          {formatDate(data.createdAt, "long", "—")}
+          {formatDate(data.createdAt)}
         </Link>
       </TableCell>
     </TableRow>
