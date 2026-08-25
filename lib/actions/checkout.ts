@@ -86,7 +86,7 @@ export async function createCheckoutSession(
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
       validatedItems.map(({ product, quantity }) => ({
         price_data: {
-          currency: "gbp",
+          currency: "usd",
           product_data: {
             name: product.name ?? "Product",
             // Safely fetch from the images array to bypass type errors
