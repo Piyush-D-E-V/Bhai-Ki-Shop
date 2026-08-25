@@ -10,6 +10,7 @@ import { Any } from "next-sanity";
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY is not defined");
 }
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-07-29.dahlia",
 });
@@ -90,7 +91,9 @@ export async function createCheckoutSession(
           product_data: {
             name: product.name ?? "Product",
             // Safely fetch from the images array to bypass type errors
-            images: (product.images as Any)?.[0]?.asset?.url ? [(product.images as Any)[0].asset.url] : [],
+            images: (product.images as Any)?.[0]?.asset?.url
+              ? [(product.images as Any)[0].asset.url]
+              : [],
             metadata: {
               productId: product._id,
             },
@@ -115,29 +118,58 @@ export async function createCheckoutSession(
       quantities: validatedItems.map((i) => i.quantity).join(","),
     };
 
+    // IMPROVEMENT 1: Smarter URL Resolution
+    // Prioritizes your manually set URL, then Vercel's production URL, then fallback
     const baseUrl =
       process.env.NEXT_PUBLIC_BASE_URL ||
+      (process.env.VERCEL_PROJECT_PRODUCTION_URL
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+        : null) ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
       "http://localhost:3000";
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       mode: "payment",
-      payment_method_types: ["upi","card","amazon_pay"],
+      payment_method_types: ["upi", "card", "amazon_pay"],
       line_items: lineItems,
-      customer: stripeCustomerId,
       shipping_address_collection: {
         allowed_countries: [
-          "GB", "US", "CA", "AU", "NZ", "IE", "DE", "FR", "ES", "IT", 
-          "NL", "BE", "AT", "CH", "SE", "NO", "DK", "FI", "PT", "PL", 
-          "CZ", "GR", "HU", "RO", "BG", "HR", "SI", "SK", "LT", "LV", 
-          "EE", "LU", "MT", "CY", "JP", "SG", "HK", "KR", "TW", "MY", 
-          "TH", "IN", "AE", "SA", "IL", "ZA", "BR", "MX", "AR", "CL", "CO"
+          "GB", "US", "CA", "AU", "NZ", "IE", "DE", "FR", "ES", "IT",
+          "NL", "BE", "AT", "CH", "SE", "NO", "DK", "FI", "PT", "PL",
+          "CZ", "GR", "HU", "RO", "BG", "HR", "SI", "SK", "LT", "LV",
+          "EE", "LU", "MT", "CY", "JP", "SG", "HK", "KR", "TW", "MY",
+          "TH", "IN", "AE", "SA", "IL", "ZA", "BR", "MX", "AR", "CL", "CO",
         ],
       },
       metadata,
       success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/checkout`,
-    });
+    };
+
+    let session;
+    
+    // IMPROVEMENT 2: Auto-healing Customer ID Error
+    try {
+      // First attempt: try with the saved customer ID
+      session = await stripe.checkout.sessions.create({
+        ...sessionConfig,
+        customer: stripeCustomerId,
+      });
+    } catch (stripeError: Any) {
+      // If Stripe says the customer ID doesn't exist (e.g., deleted during testing)
+      if (stripeError?.code === "resource_missing" && stripeError?.param === "customer") {
+        console.warn(`Customer ${stripeCustomerId} not found in Stripe. Creating session without saved customer ID...`);
+        
+        // Second attempt: retry checkout using customer email instead
+        session = await stripe.checkout.sessions.create({
+          ...sessionConfig,
+          customer_email: userEmail,
+        });
+      } else {
+        // If it's a different error, throw it so the catch block below handles it
+        throw stripeError;
+      }
+    }
 
     return { success: true, url: session.url ?? undefined };
   } catch (error) {
