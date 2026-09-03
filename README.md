@@ -68,11 +68,11 @@ Instead of:
 
 Users can simply ask:
 
-> **"Find me a Demon Slayer hoodie."**
+> **"Tell me about my orders."**
 
 or
 
-> **"Show me car-themed wall art."**
+> **"Show me car-themed wall art/etc."**
 
 The AI processes the request and helps the user discover suitable products directly through the shopping assistant.
 
@@ -90,7 +90,7 @@ The AI processes the request and helps the user discover suitable products direc
 | **Supabase**      | Database and backend services                |
 | **Clerk**         | Authentication and user management           |
 | **Stripe**        | Payment processing                           |
-| **Vercel AI SDK** | AI integration and conversational experience |
+| **Google AI SDK** | AI integration and conversational experience |
 | **Vercel**        | Deployment                                   |
 
 ---
@@ -136,21 +136,23 @@ The AI processes the request and helps the user discover suitable products direc
 
 ### Homepage
 
-![BHAI KI Homepage](./public/screenshots/homepage.png)
+![BHAI KI Homepage](https://github.com/Piyush-D-E-V/Bhai-Ki-Shop/blob/2c3e7758ccfd7121d5bd036bd923edbf19756d84/Screenshots/Bhai-ki-shop.png)
 
 ### AI Shopping Assistant
 
-![AI Shopping Assistant](./public/screenshots/ai-assistant.png)
+![AI Shopping Assistant](https://github.com/Piyush-D-E-V/Bhai-Ki-Shop/blob/06f7c06a33653ca5035c3a4787fea026e735e90b/Screenshots/Ai%20Assistant%20.png)
 
 ### Product Details
 
-![Product Details](./public/screenshots/product-details.png)
+![Product Details](https://github.com/Piyush-D-E-V/Bhai-Ki-Shop/blob/06f7c06a33653ca5035c3a4787fea026e735e90b/Screenshots/product_details.png)
 
-### Shopping Cart
+### checkout
 
-![Shopping Cart](./public/screenshots/cart.png)
+![Shopping Cart](https://github.com/Piyush-D-E-V/Bhai-Ki-Shop/blob/06f7c06a33653ca5035c3a4787fea026e735e90b/Screenshots/checkout.png)
 
-> Replace the screenshot paths above with the actual screenshots in your repository.
+### payments
+
+![Payment_gatway](https://github.com/Piyush-D-E-V/Bhai-Ki-Shop/blob/06f7c06a33653ca5035c3a4787fea026e735e90b/Screenshots/payment.png)
 
 ---
 
@@ -276,7 +278,7 @@ bhai-ki/
                     Product Details
                            │
                            ▼
-                         Cart
+                       Cart/Buynow
                            │
                            ▼
                        Checkout
