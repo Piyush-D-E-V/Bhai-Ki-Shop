@@ -9,11 +9,14 @@ import { cn, formatPrice } from "@/lib/utils";
 import { AddToCartButton } from "@/components/app/AddToCartButton";
 import { StockBadge } from "@/components/app/StockBadge";
 import type { FILTER_PRODUCTS_BY_NAME_QUERYResult } from "@/sanity.types";
+import StarRating from "@/components/app/StarRating"; // <-- Imported StarRating
 
+// Extended the type to include reviews to prevent TypeScript errors
 type Product = FILTER_PRODUCTS_BY_NAME_QUERYResult[number];
+type ProductWithReviews = Product & { reviews?: { rating: number }[] };
 
 interface ProductCardProps {
-  product: Product;
+  product: ProductWithReviews;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -120,6 +123,11 @@ export function ProductCard({ product }: ProductCardProps) {
             {formatPrice(product.price)}
           </p>
           <StockBadge productId={product._id} stock={stock} />
+          
+          {/* Added Star Rating Component */}
+          <div className="mt-1">
+            <StarRating reviews={product.reviews} />
+          </div>
         </div>
       </CardContent>
 
