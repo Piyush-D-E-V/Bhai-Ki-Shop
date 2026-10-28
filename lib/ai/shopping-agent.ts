@@ -134,8 +134,7 @@ export function createShoppingAgent({ userId }: ShoppingAgentOptions) {
   }
 
   return new ToolLoopAgent({
-    // Note: Verify your Gemini model string in your local setup. 
-    // The standard is usually "gemini-1.5-flash" or "gemini-2.5-flash".
+
     model: google("gemini-3.6-flash"),
     instructions,
     tools,
