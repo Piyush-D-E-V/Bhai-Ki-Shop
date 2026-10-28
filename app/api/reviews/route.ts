@@ -2,15 +2,19 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { client } from '@/sanity/lib/client';
 
+// Create a version of the client that has write permissions
+const writeClient = client.withConfig({
+  token: process.env.SANITY_API_WRITE_TOKEN,
+  useCdn: false, // Must be false for mutations
+});
+
 export async function POST(req: Request) {
   try {
-    // 1. Verify user authentication (added await)
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Parse the incoming request body
     const body = await req.json();
     const { productId, userName, rating, comment } = body;
 
@@ -18,8 +22,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // 3. Save the review to Sanity
-    const review = await client.create({
+    // Use writeClient instead of the default client
+    const review = await writeClient.create({
       _type: 'review',
       product: {
         _type: 'reference',

@@ -1,7 +1,6 @@
 import { defineQuery } from "next-sanity";
 import { LOW_STOCK_THRESHOLD } from "@/lib/constants/stock";
 
-
 const PRODUCT_FILTER_CONDITION = `
   _type == "product"
   && ($categorySlug == "" || category->slug.current == $categorySlug)
@@ -27,8 +26,10 @@ const FILTERED_PRODUCTS_PROJECTION = `{
   color,
   stock,
   specifications,
-  assemblyRequired
+  assemblyRequired,
+  "reviews": *[_type == "review" && product._ref == ^._id] { rating }
 }`;
+
 const RELEVANCE_SCORE = `score(
   boost(name match $searchQuery + "*", 3),
   boost(description match $searchQuery + "*", 1)
@@ -54,7 +55,8 @@ export const ALL_PRODUCTS_QUERY = defineQuery(`*[
   stock,
   featured,
   assemblyRequired,
-  specifications
+  specifications,
+  "reviews": *[_type == "review" && product._ref == ^._id] { rating }
 }`);
 
 export const FILTERED_PRODUCTS_QUERY = defineQuery(`*[
@@ -110,7 +112,8 @@ export const AI_SEARCH_PRODUCTS_QUERY = defineQuery(`*[
   material,
   color,
   stock,
-  specifications
+  specifications,
+  "reviews": *[_type == "review" && product._ref == ^._id] { rating }
 }`);
 
 export const FEATURED_PRODUCTS_QUERY = defineQuery(`*[
@@ -129,7 +132,8 @@ export const FEATURED_PRODUCTS_QUERY = defineQuery(`*[
   },
   category->{ _id, title, "slug": slug.current },
   specifications,
-  stock
+  stock,
+  "reviews": *[_type == "review" && product._ref == ^._id] { rating }
 }`);
 
 export const FILTER_PRODUCTS_BY_NAME_QUERY = defineQuery(`*[
@@ -167,7 +171,14 @@ export const PRODUCT_BY_SLUG_QUERY = defineQuery(`*[
   dimensions,
   stock,
   featured,
-  specifications
+  specifications,
+  "reviews": *[_type == "review" && product._ref == ^._id] | order(createdAt desc) {
+    _id,
+    userName,
+    rating,
+    comment,
+    createdAt
+  }
 }`);
 
 export const PRODUCT_BY_IDS_QUERY = defineQuery(`*[
@@ -183,7 +194,8 @@ export const PRODUCT_BY_IDS_QUERY = defineQuery(`*[
     asset->{ _id, url },
     hotspot
   },
-  category->{ _id, title, "slug": slug.current }
+  category->{ _id, title, "slug": slug.current },
+  "reviews": *[_type == "review" && product._ref == ^._id] { rating }
 }`);
 
 export const RELATED_PRODUCTS_QUERY = defineQuery(`
@@ -215,6 +227,7 @@ export const RELATED_PRODUCTS_QUERY = defineQuery(`
         _id,
         url
       }
-    }
+    },
+    "reviews": *[_type == "review" && product._ref == ^._id] { rating }
   }
 `);

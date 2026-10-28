@@ -50,7 +50,7 @@ const productSearchSchema = z.object({
 
 export const searchProductsTool = tool({
   description:
-    "Search for products in the furniture store. Can search by name, description, or category, and filter by material, color, and price range. Returns product details including stock availability.",
+    "Search for products in the furniture store. Can search by name, description, or category, and filter by material, color, and price range. Returns product details including stock availability and customer ratings.",
 
   inputSchema: productSearchSchema,
 
@@ -101,28 +101,37 @@ export const searchProductsTool = tool({
         };
       }
 
-      // Overrode product typing here to bypass missing TS definitions
-      const formattedProducts: SearchProduct[] = products.map((product: Any) => ({
-        id: product._id,
-        name: product.name ?? null,
-        slug: product.slug ?? null,
-        description: product.description ?? null,
-        price: product.price ?? null,
-        priceFormatted:
-          product.price != null ? formatPrice(product.price) : null,
-        category: product.category?.title ?? null,
-        categorySlug: product.category?.slug ?? null,
-        material: product.material ?? null,
-        color: product.color as "black" | "white" | "silver" | "rgb" | null,
-        dimensions: product.dimensions ?? null,
-        stockCount: product.stock ?? 0,
-        stockStatus: getStockStatus(product.stock),
-        stockMessage: getStockMessage(product.stock),
-        featured: product.featured ?? false,
-        assemblyRequired: product.assemblyRequired ?? false,
-        imageUrl: product.images?.asset?.url ?? null,
-        productUrl: product.slug ? `/products/${product.slug}` : null,
-      }));
+      // Overrode product typing here to bypass missing TS definitions and inject ratings
+      const formattedProducts = products.map((product: Any) => {
+        const reviews = product.reviews || [];
+        const averageRating = reviews.length > 0 
+          ? Number((reviews.reduce((acc: number, curr: any) => acc + curr.rating, 0) / reviews.length).toFixed(1))
+          : null;
+
+        return {
+          id: product._id,
+          name: product.name ?? null,
+          slug: product.slug ?? null,
+          description: product.description ?? null,
+          price: product.price ?? null,
+          priceFormatted:
+            product.price != null ? formatPrice(product.price) : null,
+          category: product.category?.title ?? null,
+          categorySlug: product.category?.slug ?? null,
+          material: product.material ?? null,
+          color: product.color as "black" | "white" | "silver" | "rgb" | null,
+          dimensions: product.dimensions ?? null,
+          stockCount: product.stock ?? 0,
+          stockStatus: getStockStatus(product.stock),
+          stockMessage: getStockMessage(product.stock),
+          featured: product.featured ?? false,
+          assemblyRequired: product.assemblyRequired ?? false,
+          imageUrl: product.images?.asset?.url ?? null,
+          productUrl: product.slug ? `/products/${product.slug}` : null,
+          averageRating,
+          reviewCount: reviews.length,
+        };
+      }) as (SearchProduct & { averageRating?: number | null; reviewCount?: number })[];
 
       return {
         found: true,
